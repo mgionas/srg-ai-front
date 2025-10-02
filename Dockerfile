@@ -23,7 +23,7 @@ RUN apk add --no-cache bash
 
 WORKDIR /app
 
-# Copy only the necessary build artifacts
+# Copy artifacts
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
