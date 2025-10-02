@@ -44,8 +44,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Create a docker-compose.yml file on the server
-            # This makes the server setup self-contained
+            # Step 1: Login to GHCR (this is essential)
+            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            
+            # Step 2: Pull the latest image to ensure it's on the server
+            docker pull ${{ env.IMAGE_NAME }}:latest
+            
+            # Step 3: Create or update the docker-compose.yml file
             cat << 'EOF' > ~/docker-compose.yml
             version: '3.8'
             services:
@@ -56,15 +61,11 @@ jobs:
                 ports:
                   - "3000:3000"
             EOF
-
-            # Log in to GitHub Container Registry on the server
-            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-
-            # Pull the latest image from the registry
-            docker pull ${{ env.IMAGE_NAME }}:latest
-
-            # Stop the existing container and start a new one with the updated image
-            docker-compose -f ~/docker-compose.yml up -d
-
-            # Clean up old, unused Docker images to save space
+            
+            # Step 4: Stop the old container and start the new one
+            # The '--force-recreate' flag ensures that a new container is
+            # created even if nothing in the configuration has changed.
+            docker-compose -f ~/docker-compose.yml up -d --force-recreate
+            
+            # Step 5: Clean up old, unused Docker images
             docker image prune -f
