@@ -44,7 +44,7 @@ jobs:
             # Step 1: Login to GHCR
             echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             
-            # Step 2: Pull the latest image to ensure it's on the server
+            # Step 2: Pull the latest image
             docker pull ${{ env.IMAGE_NAME }}:latest
             
             # Step 3: Create or update the docker-compose.yml file
@@ -55,13 +55,11 @@ jobs:
                 image: ${{ env.IMAGE_NAME }}:latest
                 container_name: ${{ vars.PROJECT_NAME }}
                 restart: unless-stopped
-                ports:
-                  - "3000:3000"
+                networks: 
+                  - npm
             EOF
             
             # Step 4: Stop the old container and start the new one
-            # The '--force-recreate' flag ensures that a new container is
-            # created even if nothing in the configuration has changed.
             docker compose -f ~/docker-compose.yml up -d --force-recreate
             
             # Step 5: Clean up old, unused Docker images
