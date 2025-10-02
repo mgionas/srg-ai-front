@@ -19,6 +19,7 @@ RUN npm run build
 
 # --- STAGE 2: Production ---
 FROM node:20-alpine
+RUN apk add --no-cache bash
 
 WORKDIR /app
 

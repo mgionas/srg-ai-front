@@ -36,8 +36,7 @@ jobs:
         with:
           context: .
           push: true
-          # This builds an image that works on both ARM (e.g., Mac) and AMD (most servers)
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Deploy to Server via SSH
