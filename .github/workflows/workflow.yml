@@ -2,18 +2,15 @@ name: Deploy Next.js Frontend
 
 on:
   push:
-    branches: [ main ] # This workflow runs on pushes to the main branch
+    branches: [ main ]
 
-# Environment variables available to all jobs
 env:
-  # The name of the Docker image, built using the GitHub Container Registry path
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
 
 jobs:
   build-and-deploy:
     runs-on: self-hosted # Use a standard GitHub-hosted runner
 
-    # Permissions needed for the GITHUB_TOKEN to push to GHCR
     permissions:
       contents: read
       packages: write
@@ -44,7 +41,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Step 1: Login to GHCR (this is essential)
+            # Step 1: Login to GHCR
             echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             
             # Step 2: Pull the latest image to ensure it's on the server

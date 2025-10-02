@@ -1,17 +1,13 @@
-# docker-compose.yml
-
 version: '3.8'
 
 services:
   frontend:
-    # Build the image from the Dockerfile in the current directory
     build: .
-    # Override the Dockerfile's CMD for development (enables hot-reloading)
     command: npm run dev
-    # Map port 3000 on your machine to port 3000 in the container
-    ports:
-      - "3000:3000"
-    # Mount your local code into the container for instant changes
+    networks:
+      - "bridge"
     volumes:
-      - ./:/app
-      - /app/node_modules
+      - srg-ai-front:/app/data
+
+volumes:
+  srg-ai-front:
