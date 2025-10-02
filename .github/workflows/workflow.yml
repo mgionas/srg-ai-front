@@ -1,4 +1,4 @@
-name: Deploy Next.js Frontend
+name: Deploy SRG AI Frontend
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted # Use a standard GitHub-hosted runner
+    runs-on: self-hosted
 
     permissions:
       contents: read
@@ -19,19 +19,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        # This step is crucial for multi-platform builds
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN is auto-generated
+          # Using GITHUB_TOKEN is fine, but a PAT with write:packages is also a secure option
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push multi-platform Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # Tags the image with 'latest' and the Git commit SHA for versioning
+          # This builds an image that works on both ARM (e.g., Mac) and AMD (most servers)
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Deploy to Server via SSH
@@ -47,7 +53,7 @@ jobs:
             # Step 2: Pull the latest image
             docker pull ${{ env.IMAGE_NAME }}:latest
             
-            # Step 3: Create or update the docker-compose.yml file
+            # Step 3: Create or update the docker-compose.yml file with corrected syntax
             cat << 'EOF' > ~/docker-compose.yml
             version: '3.8'
             services:
@@ -57,6 +63,15 @@ jobs:
                 restart: unless-stopped
                 networks: 
                   - npm
+                volumes:
+                  - 'srg-ai-front:/app/data'
+        
+            networks:
+              npm:
+                external: true
+
+            volumes:
+              srg-ai-front:
             EOF
             
             # Step 4: Stop the old container and start the new one
