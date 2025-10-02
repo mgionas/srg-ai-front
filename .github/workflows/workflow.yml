@@ -45,14 +45,17 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Step 1: Login to GHCR
+            # Create the project directory if it doesn't exist
+            mkdir -p ~/${{ vars.PROJECT_NAME }}
+            
+            # Step 2: Login to GHCR
             echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             
             # Step 2: Pull the latest image
             docker pull ${{ env.IMAGE_NAME }}:latest
             
             # Step 3: Create or update the docker-compose.yml file with corrected syntax
-            cat << 'EOF' > ~/docker-compose.yml
+            cat << 'EOF' > ~/${{ vars.PROJECT_NAME }}/docker-compose.yml
             version: '3.8'
             services:
               frontend:
@@ -73,7 +76,7 @@ jobs:
             EOF
             
             # Step 4: Stop the old container and start the new one
-            docker compose -f ~/docker-compose.yml up -d --force-recreate
+            docker compose -f ~/${{ vars.PROJECT_NAME }}/docker-compose.yml up -d --force-recreate
             
             # Step 5: Clean up old, unused Docker images
             docker image prune -f
