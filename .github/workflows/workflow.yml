@@ -65,7 +65,7 @@ jobs:
             # Step 4: Stop the old container and start the new one
             # The '--force-recreate' flag ensures that a new container is
             # created even if nothing in the configuration has changed.
-            docker-compose -f ~/docker-compose.yml up -d --force-recreate
+            docker compose -f ~/docker-compose.yml up -d --force-recreate
             
             # Step 5: Clean up old, unused Docker images
             docker image prune -f
